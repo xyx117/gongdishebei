@@ -1,0 +1,81 @@
+﻿@using GongDiJiXie.ViewModels
+@model RegisterViewModel
+
+@{
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*<h1>注册</h1>
+<form asp-action="Register" asp-controller="Account" method="post">
+	<div>
+		<label asp-for="UserName"></label>		
+		<input asp-for="UserName"/>
+		<span asp-validation-for="UserName"></span>
+    </div>
+	<div>
+		<label asp-for="Password"></label>		
+		<input asp-for="Password"/>
+		<span asp-validation-for="Password"></span>
+	</div>
+	<div>
+	 <input type="submit" value="提交"/>
+ </div>
+ <div asp-validation-summary="All"></div>
+</form>*@
+
+
+
+
+<div class="row" style="height: 80px;background-color:#eef6fd">
+    <div class="col-md-12">
+        <div style="float: left;width:5%;">
+            <a class="navbar-brand navbar-left">
+                @*<img src="~/Content/image/logo.png" style="width:40px;height:40px">*@
+            </a>
+        </div>
+        <div style="width: 60%; float: left; text-align: left; ">
+            <p style="font-size: x-large; padding-top: 15px"><h1>仁恒挖掘机数据管理系统注册</h1></p>
+        </div>
+    </div>
+</div>
+
+<div class="row" style="padding-top: 30px; padding-bottom: 30px; border-style:solid; border-width:1px; border-color:#eef6fd;background-color:#eef6fd; ">
+    <div class="col-md-6" style="width:45%">
+        <section id="loginForm" style="padding-top:30px">
+            @using (Html.BeginForm("Register", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })                
+                <div class="form-group">                    
+                    <div class="col-md-offset-2 col-md-10">
+                        <div class="input-group input-group-md">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+                            <input name="UserName" type="text" placeholder="请输入用户名" class="form-control">
+                        </div>
+                        @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <div class="input-group input-group-md">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                            <input name="Password" type="password" placeholder="请输入密码" class="form-control">
+                        </div>
+                        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <input type="submit" value="注册" class="btn btn-primary" style="border:1px"/>
+                    </div>
+                </div>
+            }
+        </section>
+    </div>
+    <div class="col-md-6" style="padding-top:30px;height:300px">
+        <section id="socialLoginForm">            
+        </section>
+        <img src="~/Content/image/wajueji.jpg" class="img-rounded img-responsive" style="height:100%;width:100%">
+    </div>
+</div>

@@ -1,0 +1,192 @@
+﻿@{   
+    ViewData["Title"] = "费用信息";
+}
+
+<table id="feiyong" class="easyui-datagrid" style="height:auto;width:100%">
+    <thead>
+        <tr>
+            <th data-options="field:'id',align:'center',width:'5%'" hidden>id</th>            
+            <th data-options="field:'feiyongleixing',align:'center',width:'80%'">费用类型</th>                    
+        </tr>
+    </thead>
+</table>
+<div id="toolbar" style="height: 32px; padding: 2px 5px; background:#ddd;">       
+    <div style="float: left;">
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="newfeiyong()">新 增</a>
+    </div>   
+    <div style="float: left;">
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editfeiyong()">编 辑</a>
+    </div>
+    <div style="float: left;">
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="delfeiyong()">删 除</a>
+    </div>
+</div>
+
+
+<div id="dlg" class="easyui-dialog" style="width:800px;height:180px;padding:10px 20px" data-options="closed:'true',buttons:'#dlg-buttons'">
+    <form id="fm" method="post" novalidate>
+        <div class="fitem" hidden>
+            <label>id:</label>
+            <input id="id" name="id" class="easyui-textbox">
+        </div>
+        <div class="fitem">
+            <label>费用类型:</label>
+            <input id="feiyongleixing" name="feiyongleixing" class="easyui-textbox" data-options="icons:[]" style="width:550px;height:30px" >
+        </div>            
+    </form>
+</div>
+<div id="dlg-buttons" style="text-align:center;padding:5px">
+    <a href="javascript:void(0)" class="easyui-linkbutton c6" data-options="iconcls:'icon-ok'" id="save_btn" onclick="savefeiyong()" style="width:90px">保存</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconcls:'icon-cancel'" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+</div>
+
+
+@section footer{
+    <script type="text/javascript">
+        var url;           @*由.net core 中，由 viewbag 传向 js 的中文值有乱码，解决方法在 Startup.cs文件中添加依赖注入*@
+        $(function () {
+            $("#feiyong").datagrid({
+                singleSelect: true,
+                async: false,
+                collapsible: true,
+                method: 'post',
+                url: '/FeiYongXinxis/Get_feiyong',
+                toolbar: '#toolbar',
+                rownumbers: true,
+                pagination: true,
+                fitcolumns: true,
+                //nowrap: false,
+                fit: true,                
+                autoRowheight: false,
+                queryParams: {
+                    searchquery: ''                    
+                    @*loingid: loingid*@                           
+                },
+                onLoadSuccess: function (data) {
+                    //提交  plain:当True时显示一个普通效果
+                    $('.tijiao').linkbutton({ plain: true });
+                    $('.tijiao').addClass("c6");                    
+                }
+            });
+            var p = $('#feiyong').datagrid('getPager');
+
+            $(p).pagination({
+                pageSize: 10,//每页显示的记录条数，默认为10
+
+                pageList: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100],//可以设置每页记录条数的列表
+
+                beforePageText: '第',//页数文本框前显示的汉字
+
+                afterPageText: '页    共 {pages} 页',
+
+                displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录',
+            });            
+        });
+
+        function newfeiyong() {
+            $('#dlg').dialog('open').dialog('setTitle', '新增费用类型信息');
+            $('#fm').form('clear');
+            url = '/FeiYongXinXis/Save_feiyong';
+        };
+
+        function editfeiyong() {
+            var row = $('#feiyong').datagrid('getSelected');
+            if (row) {
+                var id = row.id;
+                $('#dlg').dialog('open').dialog('setTitle', '编辑费用类型信息');
+                $('#fm').form('load', row);
+                url = '/FeiYongXinXis/Update_feiyong?id='+id;
+            }
+            else {
+                $.messager.alert("错误提示", "请选择要编辑的行！", "warning");
+            }
+        };
+
+        function savefeiyong() {
+            $('#save_btn').linkbutton({ disabled: true });   //这里是为解决一个连击问题
+            $('#fm').form('submit', {
+                url: url,
+                onSubmit: function () {       
+                    
+                    return $(this).form('validate');
+                },
+                success: function (result) {
+                    //result = $.parseJSON(result);
+
+                    result = JSON.parse(result);   //IE浏览器在后台操作完成后返回提示信息，转化为json字符串格式,在删除的方法中，加了这个后不能自动reload  dategrid
+                    
+                    $('#dlg').dialog('close');		// close the dialog
+                    $('#feiyong').datagrid('reload');	// reload the user data
+                    if (result.success ) {
+                        $.messager.show({
+                            title: '提示',
+                            msg: result.msg
+                        });
+                    }
+                    else {
+                        $.messager.show({
+                            title: '提示',
+                            msg: result.msg
+                        })
+                    }
+                },
+            });
+            $('#save_btn').linkbutton({ disabled: false });   //释放连击被禁用的按钮
+        };
+
+        function delfeiyong() {
+            var row = $('#feiyong').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('提示', '您确定要删除这条记录吗？', function (r) {
+                    if (r) {
+                        $.post('/FeiYongXinXis/Del_feiyong', { id: row.id }, function (result) {
+                            if (result.success) {
+                                $('#feiyong').datagrid('reload');	// reload the user data
+                            } else {
+                                result = JSON.parse(result);   //IE浏览器在后台操作完成后返回提示信息，转化为json字符串格式,在删除的方法中，加了这个后不能自动reload  dategrid
+
+                                $.messager.show({	// show error message
+                                    title: 'Error',
+                                    msg: result.errorMsg
+                                });
+                            }
+                        }, 'json');
+                    };
+                });
+            }
+            else {
+                $.messager.alert("错误提示", "请选择要删除的行！", "warning");
+            }
+        };        
+    </script>
+
+    <style type="text/css">
+        #fm {
+            margin: 0;
+            padding: 10px 30px;
+        }
+
+        .ftitle {
+            font-size: 14px;
+            font-weight: bold;
+            padding: 5px 0;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .fitem {
+            margin-bottom: 10px;
+        }
+
+            .fitem label {
+                display: inline-block;
+                width: 80px;
+            }
+
+            .fitem input {
+                width: 160px;
+            }
+    </style>
+}
+
+

@@ -1,0 +1,106 @@
+﻿@{
+    ViewData["Title"] = "首页图表页";
+}
+<div id="container" style="min-width:400px;height:400px">
+
+</div>
+
+
+ @section footer{  
+     <script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/highcharts.js"></script>
+    @*<script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/themes/grid.js"></script>*@
+    <script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/modules/exporting.js"></script>
+    <script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/modules/export-data.js"></script>
+    <script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/modules/accessibility.js"></script>
+
+
+    <script type="text/javascript" src="~/lib/jquery/dist/jquery.js"></script>
+
+
+    @*<script src="https://cdn.highcharts.com.cn/highcharts/highcharts.js"></script>
+            <script src="https://cdn.highcharts.com.cn/highcharts/modules/exporting.js"></script>
+            <script src="https://img.hcharts.cn/highcharts-plugins/highcharts-zh_CN.js"></script>*@
+
+
+    <script>
+        var chart;
+        var Time = new Array();//存储时间
+        var Count = new Array();//存储数量
+            $(function () {
+                //获取数据
+                $.ajax({
+                    async: false,
+                    type: 'get',
+                    datatype: 'json',
+                    url: '/Home/GetDataList',                    
+                    success: function (Data) {       
+                        
+                       xm = Data.xm ;
+                       che_jin = Data.che_jin;
+                       che_jin_feiyong = Data.che_jin_feiyong ;
+                       waji_jine = Data.waji_jine ;
+                       waji_jine_feiyong = Data.waji_jine_feiyong;
+                       zhifu_jin = Data.zhifu_jin;
+                    } 
+                });
+                    // JS 代码 
+                chart = Highcharts.chart('container',{
+                    chart: {
+                        type: 'column'
+                    },
+                    title: {
+                        text: '项目统计'
+                    },
+                    subtitle: {
+                        text: '数据来源:系统统计'
+                    },
+                    xAxis: {
+                        categories: xm,
+                        crosshair: true
+                    },
+                    yAxis: {
+                        min: 0,
+				        title: {
+					        text: '金额合计(元)'
+				        }
+                    },
+                   @* tooltip: {                        
+                        headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                        pointFormat: '<tr><td ;padding:0">{Count}: </td>' +
+                        '<td style="padding:0"><b>{point.y:.1f} 小时</b></td></tr>',
+                        footerFormat: '</table>',
+                        shared: true,
+                        useHTML: true
+                    },*@
+                    plotOptions: {
+                        column: {
+                            borderWidth: 0
+                        }
+                    },
+                    series: [{
+                        name: '渣土车工作金额合计',
+                        data: che_jin,
+                    },{
+                        name:"渣土车费用金额合计",
+                        data:che_jin_feiyong,
+                    },{
+                        name:"挖掘机工作金额合计",
+                        data:waji_jine,
+                    },{
+                        name:"挖掘机费用金额合计",
+                        data:waji_jine_feiyong,
+                    },{
+                        name:"项目支付金额合计",
+                        data:zhifu_jin,
+                    }]
+                });
+            });
+
+            
+        </script>
+ 
+ }
+    
+
+
+

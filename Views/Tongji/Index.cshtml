@@ -1,0 +1,128 @@
+﻿@{
+	var xm = ViewBag.xm;
+	ViewData["Title"] = @xm + "统计分析";
+}
+@*项目中  渣土车、挖掘机的工作记录、费用记录的柱形图；项目的已付款和总款的饼图*@
+<div>
+ <div id="zhatuche" style="width:80%;height:400px;" class="chart">
+ </div>
+ <div class="spacer"></div>
+ <div id="waji" style="width:80%;height:400px" class="chart">
+ </div>
+</div>
+
+@section footer{
+    @*<script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/themes/grid.js"></script>*@
+
+    @*<script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/highcharts.js"></script>
+	<script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/modules/exporting.js"></script>
+	<script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/modules/export-data.js"></script>
+	<script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/modules/accessibility.js"></script>*@
+
+<script type="text/javascript" src="~/lib/jquery/dist/jquery.js"></script>
+
+<script src="https://cdn.highcharts.com.cn/highcharts/highcharts.js"></script>
+<script src="https://cdn.highcharts.com.cn/highcharts/modules/exporting.js"></script>
+<script src="https://img.hcharts.cn/highcharts-plugins/highcharts-zh_CN.js"></script>
+
+
+<script>
+	var chart;
+	var Time = new Array();//存储时间
+	var Count = new Array();//存储数量
+	$(function () {
+		//获取数据
+		$.ajax({
+			async: false,
+			type: 'get',
+			datatype: 'json',
+			url: '/Tongji/GetDataList?xm=@xm',			
+			@*data: { BeformDays: ,Type: },//获取前七天的数据，*@
+			success: function (Data) {
+				zhatuche_chezhu = Data.chezhu;
+				zhatuche_jine = Data.che_jin;
+				zhatuche_jine_feiyong = Data.che_jin_feiyong;
+				waji_chezhu = Data.wajichezhu;
+				waji_jine = Data.waji_jine;
+				waji_jine_feiyong = Data.waji_jine_feiyong;
+				che_jin_zhifu = Data.che_jin_zhifu;
+			}
+		});
+		// Build Chart A
+		$('#zhatuche').highcharts({
+			chart: {
+				type: 'column'
+			},
+			title: {
+				text: '渣土车工作金额表'
+			},
+			xAxis: {
+				categories:zhatuche_chezhu,
+				@*crosshair: true*@
+			},
+			yAxis: {
+				min: 0,
+				title: {
+					text: '金额合计(元)'
+				}
+			},
+			legend: {
+				enabled: false
+			},
+			credits: {
+				enabled: false
+			},
+			tooltip: {
+				shared: true
+			},
+			series:[{
+					name: '渣土车工作合计金额',
+					data: zhatuche_jine,
+				},{
+					name:'渣土车工作费用合计金额',
+					data:zhatuche_jine_feiyong,
+				},{
+					name:'渣土车已支付金额合计',
+					data:che_jin_zhifu
+				}
+			]
+		});
+
+		// Build Chart B
+		$('#waji').highcharts({
+			chart: {
+				type: 'column'
+			},
+			title: {
+				text: '挖掘机工作金额表'
+			},
+			xAxis: {
+				categories: waji_chezhu
+			},
+			yAxis: {
+				min: 0,
+				title: {
+					text: '挖掘机合计金额(元)'
+				}
+			},
+			legend: {
+				enabled: false
+			},
+			credits: {
+				enabled: false
+			},
+			tooltip: {
+				shared: true
+			},
+			series: [{
+				name: '挖掘机工作合计金额',
+				data: waji_jine,
+			},{
+				name:'挖掘机工作费用合计金额',
+				data:waji_jine_feiyong,
+			}]
+		});
+	});
+</script>
+ }
+@*https://www.thinbug.com/q/17078277*@

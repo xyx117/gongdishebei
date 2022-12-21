@@ -1,0 +1,114 @@
+﻿@{
+}
+<h1>dfd</h1>
+<div id="chart-A" class="chart"></div>
+<div class="spacer"></div>
+<div id="chart-B" class="chart"></div>
+
+@section footer{
+@*<script src="https://cdn.highcharts.com.cn/highcharts/highcharts.js"></script>
+	<script src="https://cdn.highcharts.com.cn/highcharts/modules/exporting.js"></script>
+	<script src="https://img.hcharts.cn/highcharts-plugins/highcharts-zh_CN.js"></script>*@
+
+<script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/highcharts.js"></script>
+<script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/modules/exporting.js"></script>
+<script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/modules/export-data.js"></script>
+<script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/modules/accessibility.js"></script>
+
+
+<script>
+		$(function() {
+			//获取数据 ,这里的 a图，b图、饼图要返回6组数据
+			var A_x = new Array();
+			var A_y = new Array();
+
+			var B_x = new Array();
+			var B_y = new Array();
+
+				$.ajax({
+					async: false,
+					type: 'get',
+					datatype: 'json',
+					url: '/Tongji/GetDataList',
+					@*data: { BeformDays: ,Type: },//获取前七天的数据，*@
+					success: function (Data) {
+						Time = Data.times;
+						Count = Data.counts;
+					}
+				});
+
+		// Build Chart A
+		$('#chart-A').highcharts({
+			chart: {
+				type: 'column'
+			},
+			title: {
+				text: 'Chart A'
+			},
+			xAxis: {
+				categories: ['Jane', 'John', 'Joe', 'Jack', 'jim']
+			},
+			yAxis: {
+				min: 0,
+				title: {
+					text: 'Apple Consumption'
+				}
+			},
+			legend: {
+				enabled: false
+			},
+			credits: {
+				enabled: false
+			},
+			tooltip: {
+				shared: true
+			},
+			series: [{
+				name: 'Apples',
+				data: [5, 3, 8, 2, 4]
+			}]
+		});
+
+		// Build Chart B
+		$('#chart-B').highcharts({
+			chart: {
+				type: 'column'
+			},
+			title: {
+				text: 'Chart B'
+			},
+			xAxis: {
+				categories: ['Jane', 'John', 'Joe', 'Jack', 'jim']
+			},
+			yAxis: {
+				min: 0,
+				title: {
+					text: 'Miles during Run'
+				}
+			},
+			legend: {
+				enabled: false
+			},
+			credits: {
+				enabled: false
+			},
+			tooltip: {
+				shared: true
+			},
+			series: [{
+				name: 'Miles',
+				data: [2.4, 3.8, 6.1, 5.3, 4.1]
+			}]
+		});
+	});
+</script>
+<style>
+	.chart {
+		height: 200px;
+	}
+
+	.spacer {
+		height: 20px;
+	}
+</style>
+}

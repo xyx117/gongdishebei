@@ -1,0 +1,88 @@
+﻿<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="utf-8"><link rel="icon" href="https://jscdn.com.cn/highcharts/images/favicon.ico">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            /* css 代码  */
+        </style>
+
+        <script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/highcharts.js"></script>
+        @*<script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/themes/grid.js"></script>*@
+        <script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/modules/exporting.js"></script>
+        @*<script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/modules/export-data.js"></script>*@
+        @*<script type="text/javascript" src="~/lib/Highcharts-10.0.0/code/modules/accessibility.js"></script>*@
+
+
+        @*<script src="https://cdn.highcharts.com.cn/highcharts/highcharts.js"></script>
+        <script src="https://cdn.highcharts.com.cn/highcharts/modules/exporting.js"></script>
+        <script src="https://img.hcharts.cn/highcharts-plugins/highcharts-zh_CN.js"></script>*@
+    </head>
+    <body>
+        <div id="container" style="min-width:400px;height:400px"></div>
+        <script>
+        var chart;
+        var Time = new Array();//存储时间
+        var Count = new Array();//存储数量
+            $(function () {
+                //获取数据
+                $.ajax({
+                    async: false,
+                    type: 'get',
+                    datatype: 'json',
+                    url: '/Home/GetDataList',
+                    @*data: { BeformDays: ,Type: },//获取前七天的数据，*@
+                    success: function (Data) {
+                        @*console.log(Data.Times);
+                        console.log(Data.Counts);*@
+                        Time = Data.times;
+                        Count = Data.counts;
+                    } 
+                });
+                    // JS 代码 
+                chart = Highcharts.chart('container',{
+                    chart: {
+                        type: 'column'
+                    },
+                    title: {
+                        text: '渣土车工作量'
+                    },
+                    subtitle: {
+                        text: '数据来源: 渣土车录入'
+                    },
+                    xAxis: {
+                        categories: Time,
+                        crosshair: true
+                    },
+                    yAxis: {
+                        categories:Count
+                        @*min: 0,
+                        title: {
+                            text: '降雨量 (mm)'
+                        }*@
+                    },
+                    tooltip: {
+                        // head + 每个 point + footer 拼接成完整的 table
+                        headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                        pointFormat: '<tr><td ;padding:0">{Count}: </td>' +
+                        '<td style="padding:0"><b>{point.y:.1f} 小时</b></td></tr>',
+                        footerFormat: '</table>',
+                        shared: true,
+                        useHTML: true
+                    },
+                    plotOptions: {
+                        column: {
+                            borderWidth: 0
+                        }
+                    },
+                    series: [{
+                        name: '渣土车工作量统计报表',
+                        data: Count,
+                    }]
+                    });
+            });
+
+            
+        </script>
+    </body>
+</html>

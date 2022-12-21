@@ -1,0 +1,102 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject RoleManager<ApplicationRole> RoleManager
+@{
+    var id = SignInManager.UserManager.GetUserId(User);    
+}
+@if (SignInManager.IsSignedIn(User))
+{
+    using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "navbar-right" }))
+    {
+        @Html.AntiForgeryToken()
+        <div class="t_right_top">
+            <ul>
+                <li id="timmer"></li>
+                <li><a href="javascript:document.getElementById('logoutForm').submit()">&nbsp;&nbsp;&nbsp;<img src='~/Content/image/quit.png' title='注销' /> 注销</a></li>
+            </ul>
+        </div>    
+        <div class="t_right_user">
+            <div style="text-align:right" id="usenameandrole"> </div>       
+        </div>
+    }
+}
+else
+{
+    <ul class="nav navbar-nav navbar-right">
+        <li>@Html.ActionLink("登录", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
+    </ul>
+}
+
+@*<link href="~/css/top-right.css" rel="stylesheet"/>*@
+
+<style type="text/css">
+    .t_right_top{ font-family:'微软雅黑'; font-size:14px; color:#000; width:423px; height:30px; background:url(../Content/image/t_right_topBg.png) no-repeat;position:absolute; right:0px; top:0px;}
+    .t_right_top ul{ float:left;display:inline;width:100%;height:30px; line-height:30px; margin-left:27px;}
+    .t_right_top ul li{ float:left; list-style:none;line-height:30px;}
+    .t_right_top ul li a img{ vertical-align:middle; border:none; display:inline;}
+    .t_right_top ul li a{width:100%;text-align:center; text-decoration:none; cursor:pointer;line-height:30px; color:#343a40;display: inline-block; padding-right:15px;}
+    .t_right_top ul li a:hover{ color:#c13939; font-weight:700;}
+    .t_right_top_text{ margin-left:3px;line-height:30px;}
+    .t_right_user{font-family:'微软雅黑';color:#000000; font-size:14px;text-align:right; position:absolute; right:155px; top:48px;}
+</style>
+
+<script type="text/javascript">
+    $(function () {
+        //提取用户的登录名和角色
+        var id = '@id';
+        $.ajax({
+            type: 'post',
+            async:true,
+            url: '/Account/GetNameRole',
+            data: {
+               "id": id
+            },
+            //contentType: 'application/json; charset=utf-8', 加了这两句，控制器反而收不到id，所有这要特别注意的！！
+            dataType:'json ',
+            success: function (data) {                
+                @*data = JSON.parse(data);*@                
+                if (data.success) {                    
+                    $("#usenameandrole").html("您好！ " + data.name + " (" + data.role + ")");
+                } else {
+                    $("#usenameandrole").html("您好！");
+                }
+            }
+        });
+        // 计时
+        runTimmer();
+        setInterval("runTimmer()", 1000);
+    });
+
+    var getFormatStr = function (num) {
+        if (num < 10) {
+            return "0" + num;
+        } else {
+            return num;
+        }
+    };
+    var runTimmer = function () {
+        var now = new Date();
+        var year = now.getFullYear();
+        var month = now.getMonth() + 1;
+        var day = now.getDay();
+        var week;
+        switch (day) {
+            case 0: week = "星期日"; break;
+            case 1: week = "星期一"; break;
+            case 2: week = "星期二"; break;
+            case 3: week = "星期三"; break;
+            case 4: week = "星期四"; break;
+            case 5: week = "星期五"; break;
+            case 6: week = "星期六"; break;
+        }
+        var date = now.getDate();
+        var hours = now.getHours();
+        var minutes = now.getMinutes();
+        var seconds = now.getSeconds();
+        var timmer = "" + year + "年" + getFormatStr(month) + "月" + getFormatStr(date) + "日"
+        + "&nbsp;&nbsp;" + getFormatStr(hours) + ":" + getFormatStr(minutes) + ":" + getFormatStr(seconds) + "&nbsp;&nbsp;" + week;
+        $("#timmer").html(timmer);
+        now = null;
+    };  
+</script>

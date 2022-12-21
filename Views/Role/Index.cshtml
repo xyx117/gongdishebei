@@ -1,0 +1,207 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject RoleManager<ApplicationRole> RoleManager
+@{
+    ViewBag.Title = "基本设置--角色管理";    
+}
+
+<table id="juese" class="easyui-datagrid" title="位置：基本设置>>角色管理" style="height:auto;">
+    <thead>
+        <tr>            
+            <th data-options="field:'id',align:'center',width:'1%'" hidden></th>                       
+            <th data-options="field:'role',align:'center',width:'45%'">角色</th>                       
+            <th data-options="field:'description',align:'center',width:'50%'">描述</th>                   
+        </tr>
+    </thead>
+</table>
+<div id="toolbar">    
+    <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="newRole()">新 增</a>
+    <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editRole()">编 辑</a>    
+    <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="destroyRole()">删 除</a>
+</div>
+
+<div id="dlg" class="easyui-dialog" style="width:600px;height:350px;padding:10px 20px" data-options="closed:'true',buttons:'#buttons'">
+    <div class="ftitle">角色设置</div>
+    <form id="juese_fm" method="post" style="padding-left:10px" novalidate>
+        <div class="fitem">
+            <label>角色名:</label>
+            <input name="name" id="name" class="easyui-textbox" data-options="icons:[]" style="width:380px;height:30px" required>
+        </div>             
+        <div class="fitem">
+            <label>描述:</label>
+            <input name="description" id="description" class="easyui-textbox" style="width:380px;height:30px" >
+        </div>        
+    </form>
+</div>
+<div id="buttons" style="text-align:center;padding:5px">
+    <a href="javascript:void(0)" class="easyui-linkbutton c6" data-options="iconcls:'icon-ok'" onclick="saveRole()" style="width:90px">保存</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconcls:'icon-cancel'" onclick="javascript: $('#dlg').dialog('close')" style="width:90px">取消</a>
+</div>
+
+@section footer{
+    <script type="text/javascript">
+        var url;        
+        $(function () {
+            $("#juese").datagrid({
+                singleSelect: true,
+                async: false,
+                collapsible: true,
+                method: 'post',
+                url: '/Role/GetRole',
+                toolbar: '#toolbar',
+                rownumbers: true,
+                pagination: true,
+                fitcolumns: true,
+                nowrap: true,
+                fit: true,
+                autoRowHeight: false,
+                queryParams: {                    
+                }
+            });
+
+            //设置分页控件
+            var p = $('#juese').datagrid('getPager');
+            $(p).pagination({
+                pageSize: 10,//每页显示的记录条数，默认为10
+                pageList: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100],//可以设置每页记录条数的列表
+                beforePageText: '第',//页数文本框前显示的汉字
+                afterPageText: '页    共 {pages} 页',
+                displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录',
+            });
+            $('#role').textbox().textbox('addClearBtn', 'icon-clear');            
+            $('#description').textbox().textbox('addClearBtn', 'icon-clear');            
+        });
+
+        //文本框有输入之后文本框末尾有删除符号出现
+        $.extend($.fn.textbox.methods, {
+            addClearBtn: function (jq, iconCls) {
+                return jq.each(function () {
+                    var t = $(this);
+                    var opts = t.textbox('options');
+                    opts.icons = opts.icons || [];
+                    opts.icons.unshift({
+                        iconCls: iconCls,
+                        handler: function (e) {
+                            $(e.data.target).textbox('clear').textbox('textbox').focus();
+                            $(this).css('visibility', 'hidden');
+                        }
+                    });
+                    t.textbox();
+                    if (!t.textbox('getText')) {
+                        t.textbox('getIcon', 0).css('visibility', 'hidden');
+                    }
+                    t.textbox('textbox').bind('keyup', function () {
+                        var icon = t.textbox('getIcon', 0);
+                        if ($(this).val()) {
+                            icon.css('visibility', 'visible');
+                        } else {
+                            icon.css('visibility', 'hidden');
+                        }
+                    });
+                });
+            }
+        });        
+
+        //新增角色
+        function newRole() {
+            $('#dlg').dialog('open').dialog('setTitle', '新增角色');
+            $('#name').textbox('enable', 'true');
+            $('#description').textbox('enable', 'true');            
+            $('#juese_fm').form('clear');
+            url = '/Role/Addrole';
+        };
+
+        //用户编辑
+        function editRole() {
+            var row = $('#juese').datagrid('getSelected');
+            if (row) {
+                var id = row.Id;
+                $('#dlg').dialog('open').dialog('setTitle', '编辑角色');
+                $('#juese_fm').form('load', row);
+                $('#name').textbox('disable', 'true');
+                $('#description').textbox('disable', 'true');               
+                url = '/Role/EditRole?id=' + id + '';
+            }
+            else {
+                $.messager.alert("错误提示", "请选择要编辑的行！", "warning");
+            }
+        };
+
+        function saveRole() {
+            $('#juese_fm').form('submit', {
+                url: url,
+                onSubmit: function () {
+                    return $(this).form('validate');
+                },
+                success: function (result) {                    
+                    result = JSON.parse(result);
+                    $('#dlg').dialog('close');		// close the dialog
+                    $('#juese').datagrid('reload');	// reload the user data
+                    if (result.success == true) {
+                        $.messager.show({
+                            title: '提示',
+                            msg: result.msg
+                        });
+                    } else {
+                        $.messager.show({
+                            title: '错误提示',
+                            msg: result.msg
+                        });
+                    }
+                }
+            });
+        };
+
+        function destroyRole() {
+            var row = $('#juese').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('提示', '您确定要删除该角色吗？', function (r) {
+                    if (r) {
+                        $.post('/Role/DelRole', { yuangongid: row.Id }, function (result) {
+                            if (result.Succeeded) {
+                                $('#juese').datagrid('reload');	// reload the user data
+                                $.messager.show({
+                                    title: '提示',
+                                    msg: result.msg
+                                });
+                            } else {
+                                $.messager.show({
+                                    title: '错误提示',
+                                    msg: result.msg
+                                });
+                            }
+                        }, 'json');
+                    }
+                });
+            }
+            else {
+                $.messager.alert("错误提示", "请选择要删除的行！", "warning");
+            }
+        };        
+    </script>
+
+    <style type="text/css">
+        #fm {
+            margin: 0;
+            padding: 10px 30px;
+        }
+        .ftitle {
+            font-size: 14px;
+            font-weight: bold;
+            padding: 5px 0;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        .fitem {
+            margin: 10px;
+        }
+            .fitem label {
+                display: inline-block;
+                width: 80px;
+            }
+            .fitem input {
+                width: 160px;
+            }
+    </style>
+}

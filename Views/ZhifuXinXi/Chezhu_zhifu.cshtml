@@ -1,0 +1,16 @@
+﻿@{
+	var chezhu = ViewBag.chezhu;
+	var xm = ViewBag.xm;
+
+	var jine = ViewBag.jine;
+	var heji= ViewBag.heji;
+}
+<div class="container">
+	<div class="row clearfix">
+		<div class="col-md-12 column" style="float:left">
+           <h1>
+				<b>@chezhu 在 @xm 项目中<br />使用渣土车、挖掘机合计 @heji 元，<br />已经支付 @jine 元 ，<br>剩余未支付 @(@heji - @jine) 元 </b>
+		   </h1>
+		</div>		
+	</div>
+</div>

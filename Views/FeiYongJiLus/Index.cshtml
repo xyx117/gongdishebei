@@ -1,0 +1,404 @@
+﻿@{
+    var xm = ViewBag.xm;
+    ViewData["Title"] = @xm + "费用记录";
+}
+
+<table id="feiyongjilu" class="easyui-datagrid" style="height:auto;width:100%">
+    <thead>
+        <tr>
+            <th data-options="field:'id',align:'center',width:'4%'" hidden>id</th>         
+            <th data-options="field:'chezhu',align:'center',width:'15%'">车主</th>
+            <th data-options="field:'feiyongduixiang',align:'center',width:'15%'">费用对象</th>
+            <th data-options="field:'leixing',align:'center',width:'15%'">挖机/渣土车</th>            
+            <th data-options="field:'time',align:'center',width:'15%'" formatter="formatDatebox">费用日期</th>
+            <th data-options="field:'total',align:'center',width:'20%'">金额（元）</th>           
+            <th data-options="field:'feiyongleixing',align:'center',width:'19%'" >费用类型</th>              
+        </tr>
+    </thead>
+</table>
+<div id="toolbar" style="height: 32px; padding: 2px 5px; background:#ddd;">        
+    <div style="float: left;">
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="newfeiyongjilu()">新 增</a>
+    </div>   
+    <div style="float: left;">
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editfeiyongjilu()">编 辑</a>
+    </div>
+    <div style="float: left;">
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="delfeiyongjilu()">删 除</a>
+    </div>
+    <div style="float: right">        
+        <form>
+            开始时间: <input class="easyui-datebox" style="width:150px" id="kaishi">
+		    至: <input class="easyui-datebox" style="width:150px" id="jieshu">
+		    车主: 
+		    <select class="easyui-combobox" panelHeight="auto" style="width:100px" id="chezhu_filt" data-options="prompt:'请选择---'">@*data-options="onSelect:function(){chezhu_filt_sel();}"*@
+			    @foreach (var item in ViewBag.chezhu )
+                {
+                    <option value="@item">@item</option>
+                }
+		    </select>
+            牌号:
+            <select class="easyui-combobox" panelHeight="auto" style="width:200px" id="chepai_filt" data-options="prompt:'请选择---'" >
+			    @foreach (var item in ViewBag.paihao)
+                {
+                    <option value="@item">@item</option>
+                }                                         
+		    </select>
+		    <a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="doSearch()">Search</a>
+        </form>        			
+    </div>   
+</div>
+@*这里放一个合计备注，点击搜索后等待脚本执行的datagrid数据加载完毕，用ajax刷新这里的数据*@
+<div class="container" id="heji">	
+    <div>@ViewBag.msg</div>
+</div>
+
+<div id="dlg" class="easyui-dialog" style="width:800px;height:380px;padding:10px 20px" data-options="closed:'true',buttons:'#dlg-buttons'">
+    <form id="fm" method="post" novalidate>
+        <div class="fitem" hidden>
+            <label>id:</label>
+            <input id="id" name="id" class="easyui-textbox">
+        </div>        
+        <div class="fitem">
+            <label>挖机/渣土</label>
+            <select id="leixing" name="leixing" class="easyui-combobox" style="width:550px;height:30px">   
+                <option>渣土车</option>   
+                <option>挖掘机</option>           
+             </select>
+        </div> 
+        <div class="fitem">
+            <label>费用对象</label>
+            @*<select id="feiyongduixiang" name="feiyongduixiang" class="easyui-combobox" style="width:550px;height:30px" data-options="editable:false,panelHeight:'auto'" required>
+                @foreach (var item in ViewBag.chepai)
+                {
+                    <option value="@item">@item</option>
+                }
+            </select>*@
+            <input id="feiyongduixiang" name="feiyongduixiang" class="easyui-combobox" data-options="editable:false" style="width:550px;height:30px">
+        </div> 
+        <div class="fitem">
+            <label>车主</label>
+            <input id="chezhu" name="chezhu" class="easyui-combobox" data-options="editable:false" style="width:550px;height:30px">
+        </div>
+        <div class="fitem">
+            <label>费用时间</label>
+            <input id="time" name="time" class="easyui-datebox" data-options="icons:[],editable:false" style="width:550px;height:30px">
+        </div>        
+        <div class="fitem">
+            <label>金额(元)</label>
+            <input id="total" name="total" class="easyui-textbox" data-options="icons:[],validType:'numeric'" style="width:550px;height:30px">
+        </div> 
+        <div class="fitem">
+            <label>费用类型</label>
+            <select id="feiyongleixing" name="feiyongleixing" class="easyui-combobox" style="width:550px;height:30px" data-options="editable:false,panelHeight:'auto'" required>
+                @foreach (var item in ViewBag.feiyongfenlei)
+                {
+                    <option value="@item">@item</option>
+                }
+            </select>
+        </div>         
+    </form>
+</div>
+<div id="dlg-buttons" style="text-align:center;padding:5px">
+    <a href="javascript:void(0)" class="easyui-linkbutton c6" data-options="iconcls:'icon-ok'" id="save_btn" onclick="savefeiyongjilu()" style="width:90px">保存</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconcls:'icon-cancel'" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+</div>
+
+
+@section footer{
+    <script type="text/javascript">
+        var url,xm= '@ViewBag.xm',chezhu_filt="",chepai_filt="";
+        var kaishi,jieshu;
+        $(function () {
+            $("#feiyongjilu").datagrid({
+                singleSelect: true,
+                async: false,
+                collapsible: true,
+                method: 'post',
+                url: '/FeiYongJiLus/Get_feiyongjilu',
+                toolbar: '#toolbar',
+                rownumbers: true,
+                pagination: true,
+                fitcolumns: true,
+                //nowrap: false,
+                //fit: true,                @*datagrid表不用满屏显示*@
+                autoRowheight: false,
+                queryParams: {
+                    searchquery: '',
+                    xm:xm
+                    @*loingid: loingid*@                           
+                },
+                onLoadSuccess: function (data) {
+                    //提交  plain:当True时显示一个普通效果
+                    $('.tijiao').linkbutton({ plain: true });
+                    $('.tijiao').addClass("c6");                    
+                }
+            });
+            var p = $('#feiyongjilu').datagrid('getPager');
+
+            $(p).pagination({
+                pageSize: 20,//每页显示的记录条数，默认为10
+                pageList: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100],//可以设置每页记录条数的列表
+                beforePageText: '第',//页数文本框前显示的汉字
+                afterPageText: '页    共 {pages} 页',
+                displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录',
+            });  
+            
+             @*选择挖掘机或者渣土车的时候，和 车牌或者机牌 输入框发生联动*@
+            $('#leixing').combobox({
+                //url:'/FeiYongJiLus/Leixing?xm=@xm',
+                editable:false,
+                multiple:false,
+                prompt:'请选择---',
+                valueField:'id',
+                textField:'leixing',                
+                onChange:function(textField){    //缺少这个传值，困扰了两天
+                    leixing_sel(textField);                    
+                }
+            }); 
+
+            //datagrid加载数据的时候，过滤功能中 车牌下拉框和车主下拉框  默认没有选中                        
+            $('#chezhu_filt').combobox({  
+                onChange:function(textField){    //缺少这个传值，困扰了两天  ,在初始化中，这个  onchange事件就算是没有人为 触发，也会自动执行
+                    //alert("change");
+                    chezhu_filt_sel();      // 过滤功能中的  车牌下拉框  的 联动触发后 加载数据
+                    //$('#chepai_filt').combobox('clear');
+                    $('#chepai_filt').combobox('setValue',"");                    
+                },
+                onLoadSuccess : function() {                    
+                    $('#chepai_filt').combobox('setValue',"");
+                }                              
+            }).combobox('clear'); 
+            setTimeout(1000);
+            $('#chepai_filt').combobox('setValue',"");
+        });
+
+        //联动选择车牌或者机牌
+        function leixing_sel(textField){
+            //var text = alert(textField);
+            $('#feiyongduixiang').combobox({
+                disabled:false,
+                prompt:'请选择---',
+                url:'/FeiYongJiLus/Feiyongduixiang?xm=@xm&leixing='+$('#leixing').combobox("getValue"),
+                valueField:'id',
+                textField:'feiyongduixiang',   
+                onLoadSuccess : function() {   //判断返回的值长度，默认加载第一项
+                    var data = $('#feiyongduixiang').combobox('getData');                        
+                    if(data.length > 0){                        	
+	                    $('#feiyongduixiang').combobox('select',data[0].id);
+                    }   
+                },
+                onChange:function(textField){   //缺少这个传值，困扰了两天
+                    chezhu_sel(textField)
+                }
+            }).combobox("clear");
+        };
+
+        //车主下拉框 根据车牌/机牌 下拉框 联动取值
+        function chezhu_sel(textField){
+            $('#chezhu').combobox({
+                disabled:false,
+                prompt:'请选择---',
+                url:'/FeiYongJiLus/Chezhu?xm=@xm&paihao='+$('#feiyongduixiang').combobox("getValue")+'&leixing='+$('#leixing').combobox("getValue"),
+                valueField:'id',
+                textField:'chezhu',   
+                onLoadSuccess : function() {   //判断返回的值长度，默认加载第一项
+                    var data = $('#chezhu').combobox('getData');                        
+                    if(data.length > 0){                        	
+	                    $('#chezhu').combobox('select',data[0].id);
+                    }   
+                }                
+            }).combobox("clear");
+        };
+
+        //对textbox进行验证
+        $.extend($.fn.textbox.defaults.rules, {
+            positive_int: {
+                validator: function (value, param) {
+                    if (value) {
+                        return /^[0-9]*[1-9][0-9]*$/.test(value);
+                    } else {
+                        return true;
+                    }
+                },
+                message: '只能输入正整数.'
+            },
+            numeric: {
+                validator: function (value, param) {
+                    if (value) {
+                        return /^[0-9]*(\.[0-9]+)?$/.test(value);
+                    } else {
+                        return true;
+                    }
+                },
+                message: '只能输入数值.'
+            }
+        });
+
+        //在过滤筛选中，当车主下选框选中时，触发 生成 车牌下选框  的二联动，
+        function chezhu_filt_sel(){            
+            var chezhu_sel = document.getElementById("chezhu_filt").value;            
+            $('#chepai_filt').combobox({
+                disabled:false,
+                prompt:'请选择---',
+                url:'/FeiYongJiLus/Jipai_filt?xm=@xm&chezhu='+chezhu_sel,    // 过滤功能中的  车牌下拉框  的 联动触发后 加载数据,初始加载和联动加载使用同一个方法，只需在后台判断  车主 是否为空
+                valueField:'id',
+                textField:'jipai',
+                onLoadSuccess : function() {   //判断返回的值长度，默认加载第一项
+                        var data = $('#chepai_filt').combobox('getData');                        
+                        if(data.length > 0){                        	
+	                        $('#chepai_filt').combobox('select',"");    //当人为触发  下拉框的 onchange事件，如果有数据，车牌下拉框默认加载第一项的下拉列表
+                        }
+                 }
+            });
+        };
+
+        //点击搜索触发事件
+        function doSearch() {            
+            var kaishi = document.getElementById("kaishi").value;
+            var jieshu = document.getElementById("jieshu").value;
+            var chezhu_filt = document.getElementById("chezhu_filt").value;
+            var chepai_filt = document.getElementById("chepai_filt").value;
+            @*这里的参数 xm ，写成 @xm 一直拿不到值，一直到不了后台的断点*@
+            $('#feiyongjilu').datagrid('load', { "xm":xm, "kaishi": kaishi, "jieshu": jieshu,"chezhu_filt":chezhu_filt,"chepai_filt":chepai_filt });   
+            
+            //这里执行ajax 替换 datagrid 底部的提示信息
+            $.ajax({
+                type: 'post', //请求的方式
+                async : false,
+                url:  '/FeiYongJiLus/Feiyong_tishi?xm=@xm&kaishi='+kaishi+'&jieshu='+jieshu+'&chezhu_filt='+chezhu_filt+'&chepai_filt='+chepai_filt+'', // 请求的URL地址
+                @*data: {  },// 这次请求要携带的数据*@
+                success: function(res) { //请求成功之后的回调函数
+                    @*var jsonStr = JSON.stringify(res);*@
+                    if(res.length>0){   
+                        var div_data = "<div>"+res+"</div>"
+                        $("#heji").html(div_data);
+                        //alert(res);                                 
+                    }                                
+                }
+            });
+        };
+
+        @*截取显示部分时间*@
+        function formatDatebox(value){           
+            var time = value.substring(0,10);           
+            return time;
+        };      
+
+        function newfeiyongjilu() {
+            $('#dlg').dialog('open').dialog('setTitle', '新增渣土车信息');
+            $('#fm').form('clear');
+            @*设置时间输入框显示当天日期  *@
+            $('#time').datebox('setValue',formatterDate(new Date()));
+
+            url = '/FeiYongJiLus/Save_feiyongjilu?xm=@xm';
+        };
+
+        //设置时间输入框默认显示当前时间
+        function formatterDate(date) {            
+            var day = date.getDate() > 9 ? date.getDate() : "0" + date.getDate();
+            var month = (date.getMonth() + 1) > 9 ? (date.getMonth() + 1) : "0"
+                + (date.getMonth() + 1);            
+            return date.getFullYear() + '/' + month + '/' + day;
+        };
+
+        function editfeiyongjilu() {
+            var row = $('#feiyongjilu').datagrid('getSelected');
+            if (row) {
+                var id = row.id;
+                $('#dlg').dialog('open').dialog('setTitle', '编辑渣土车信息');
+                $('#fm').form('load', row);
+                url = '/FeiYongJiLus/Update_feiyongjilu?id='+id;
+            }
+            else {
+                $.messager.alert("错误提示", "请选择要编辑的行！", "warning");
+            }
+        };
+
+        function savefeiyongjilu() {
+            $('#save_btn').linkbutton({ disabled: true });   //这里是为解决一个连击问题
+            $('#fm').form('submit', {
+                url: url,
+                onSubmit: function () {       
+                    
+                    return $(this).form('validate');
+                },
+                success: function (result) {
+                    //result = $.parseJSON(result);
+
+                    result = JSON.parse(result);   //IE浏览器在后台操作完成后返回提示信息，转化为json字符串格式,在删除的方法中，加了这个后不能自动reload  dategrid
+                    
+                    $('#dlg').dialog('close');		// close the dialog
+                    $('#feiyongjilu').datagrid('reload');	// reload the user data
+                    if (result.success ) {
+                        $.messager.show({
+                            title: '提示',
+                            msg: result.msg
+                        });
+                    }
+                    else {
+                        $.messager.show({
+                            title: '提示',
+                            msg: result.msg
+                        })
+                    }
+                },
+            });
+            $('#save_btn').linkbutton({ disabled: false });   //释放连击被禁用的按钮
+        };
+
+        function delfeiyongjilu() {
+            var row = $('#feiyongjilu').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('提示', '您确定要删除这条记录吗？', function (r) {
+                    if (r) {
+                        $.post('/FeiYongJiLus/Del_feiyongjilu', { id: row.id }, function (result) {
+                            if (result.success) {
+                                $('#feiyongjilu').datagrid('reload');	// reload the user data
+                            } else {
+                                result = JSON.parse(result);   //IE浏览器在后台操作完成后返回提示信息，转化为json字符串格式,在删除的方法中，加了这个后不能自动reload  dategrid
+
+                                $.messager.show({	// show error message
+                                    title: 'Error',
+                                    msg: result.errorMsg
+                                });
+                            }
+                        }, 'json');
+                    };
+                });
+            }
+            else {
+                $.messager.alert("错误提示", "请选择要删除的行！", "warning");
+            }
+        };
+        
+    </script>
+
+    <style type="text/css">
+        #fm {
+            margin: 0;
+            padding: 10px 30px;
+        }
+
+        .ftitle {
+            font-size: 14px;
+            font-weight: bold;
+            padding: 5px 0;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .fitem {
+            margin-bottom: 10px;
+        }
+
+            .fitem label {
+                display: inline-block;
+                width: 80px;
+            }
+
+            .fitem input {
+                width: 160px;
+            }
+    </style>
+}

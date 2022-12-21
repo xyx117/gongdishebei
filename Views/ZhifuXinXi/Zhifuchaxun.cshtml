@@ -1,0 +1,97 @@
+﻿@model IEnumerable<GongDiJiXie.ViewModels.Zhifuchaxun>
+@{
+	var xm = ViewBag.xm;
+	ViewData["Title"] = @xm + "支付查询";	
+}
+<div style="padding:5px;">
+    <table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th nowrap>
+                序号
+            </th>
+            <th nowrap>                
+                车主
+            </th>
+            <th nowrap>
+                总金额 (元)
+            </th>
+            <th nowrap>
+                费用 (元)
+            </th>
+            <th nowrap>
+                已支付 (元)
+            </th>
+            <th nowrap>
+                未付款 (元)
+            </th>
+            <th nowrap>
+                支付进度
+            </th>           
+        </tr>
+    </thead>
+    <tbody>
+        @{ int hao = 1;}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @hao
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Chezhu)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Jine)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Feiyong)
+                </td>                
+                <td>
+                    @Html.DisplayFor(modelItem => item.Yifu)
+                </td>
+                <td>                    
+                    @if (@item.Yifu + @item.Feiyong > @item.Jine)
+                    {
+                        <div style="color:#FF0000">已经超额支付：@item.Chaoe </div>
+                    }
+                    else
+                    {
+                        @Html.DisplayFor(modelItem => item.Yue)
+                    }   
+                </td>
+                <td>
+                    @if (@item.Yifu + @item.Feiyong > @item.Jine)
+                    {
+                        <div style="color:#FF0000">已经超额支付：@item.Chaoe (元)</div>
+                    }
+                    else
+                    {
+                        <div class="easyui-progressbar" data-options="value:zhifubi(@item.Yifu+@item.Feiyong,@item.Jine)" id="pb" style="width:300px;"></div>       
+                    }                   
+                </td>                
+            </tr>
+            hao = hao + 1;            
+        }       
+    </tbody>
+</table>
+</div>
+
+
+@section footer{    
+    <script type="text/javascript">
+         
+        
+        function zhifubi(a,b){             
+            
+            //var t = Math.round((a/b)*100)  //四舍五入，这里四舍五入把 2块 3块钱给 舍弃没了，考虑不用 四舍五入
+            
+            var t = ((a/b)*100).toFixed(2)  //四舍五入，这里四舍五入把 2块 3块钱给 舍弃没了，考虑不用 四舍五入,完美！！！！！！
+            
+            //alert(t)
+            return t;
+        };
+
+    </script>
+    
+}

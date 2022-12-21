@@ -1,0 +1,407 @@
+﻿@{
+    var xm = ViewBag.xm;
+    var chezhu = ViewBag.chezhu;    
+    ViewData["Title"] = @xm + "支付记录";
+}
+@*<a id="ceshi" title="kjlkj">测试</a>*@
+
+<table id="zhifu" class="easyui-datagrid" style="height:auto;width:100%">
+    <thead>
+        <tr>
+            <th data-options="field:'id',align:'center',width:'4%'" hidden>id</th>            
+            <th data-options="field:'xiangmumingcheng',align:'center',width:'20%'">项目名称</th>
+            <th data-options="field:'chezhu',align:'center',width:'20%',tooltip:'true'" formatter="chakan">车主</th>          
+            <th data-options="field:'zhifujine',align:'center',width:'20%'">支付金额</th>
+            <th data-options="field:'zhifushijian',align:'center',width:'19%'" formatter="formatDatebox">支付日期</th>           
+            <th data-options="field:'zhifubeizhu',align:'center',width:'20%'" >支付备注</th>                    
+        </tr>
+    </thead>
+</table>
+@*这里放一个合计备注，值从页面加载的时候传过来*@
+<div class="container" id="heji">	
+    <div>@ViewBag.msg</div>
+</div>
+
+<div id="toolbar" style="height: 32px; padding: 2px 5px; background:#ddd;">        
+    <div style="float: left;">
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="newzhifu()">新 增</a>
+    </div>   
+    <div style="float: left;">
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editzhifu()">编 辑</a>
+    </div>
+    <div style="float: left;">
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="delzhifu()">删 除</a>
+    </div>
+    <div style="float: right">        
+        <form>
+            开始时间: <input class="easyui-datebox" style="width:150px" id="kaishi">
+		    至: <input class="easyui-datebox" style="width:150px" id="jieshu">
+		    车主: 
+		    <select class="easyui-combobox" panelHeight="auto" style="width:100px" id="chezhu_filt" data-options="prompt:'请选择---'">@*data-options="onSelect:function(){chezhu_filt_sel();}"*@
+			    @foreach (var item in ViewBag.chezhu )
+                {
+                    <option value="@item">@item</option>
+                }
+		    </select>            
+		    <a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="doSearch()">搜索</a>
+        </form>        			
+    </div>
+</div>
+
+
+<div id="dlg" class="easyui-dialog" style="width:800px;height:370px;padding:10px 20px" data-options="closed:'true',buttons:'#dlg-buttons'">
+    <form id="fm" method="post" novalidate>
+        <div class="fitem" hidden>
+            <label>id:</label>
+            <input id="id" name="id" class="easyui-textbox">
+        </div>                
+        <div class="fitem">
+            <label>车主:</label>
+            @*<input id="chezhu" name="chezhu" class="easyui-combobox" data-options="icons:[],editable:false" style="width:550px;height:30px">*@
+            <select id="chezhu" name="chezhu" class="easyui-combobox" style="width:550px;height:30px" data-options="editable:false,panelHeight:'auto'" required>
+                @foreach (var item in ViewBag.chezhu)
+                {
+                    <option value="@item">@item</option>
+                }
+            </select>
+        </div>
+        <div class="fitem">
+            <label>支付时间:</label>
+            <input id="zhifushijian" name="zhifushijian" class="easyui-datebox" data-options="icons:[],editable:false" style="width:550px;height:30px">
+        </div>        
+        <div class="fitem">
+            <label>支付金额:</label>
+            <input id="zhifujine" name="zhifujine" class="easyui-textbox" data-options="icons:[],validType:'numeric'" style="width:550px;height:30px">
+        </div> 
+        <div class="fitem">
+            <label>支付备注:</label>
+            <input id="zhifubeizhu" name="zhifubeizhu" class="easyui-textbox" data-options="icons:[],multiline:true" style="width:550px;height:60px">
+        </div>         
+    </form>
+</div>
+<div id="dlg-buttons" style="text-align:center;padding:5px">
+    <a href="javascript:void(0)" class="easyui-linkbutton c6" data-options="iconcls:'icon-ok'" id="save_btn" onclick="savezhifu()" style="width:90px">保存</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconcls:'icon-cancel'" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+</div>
+
+
+@section footer{    
+<script type="text/html" src="~/js/jquery.datagrid.extend.js"></script>
+
+@*<script src="http://www.easyui-extlib.com/Scripts/jquery-easyui-extensions/datagrid/jeasyui.extensions.datagrid.getDom.js"></script>
+<script src="http://www.easyui-extlib.com/Scripts/jquery-easyui-extensions/datagrid/jeasyui.extensions.datagrid.getColumnInfo.js"></script>
+<script src="http://www.easyui-extlib.com/Scripts/jquery-easyui-extensions/datagrid/jeasyui.extensions.datagrid.getRowData.js"></script>
+<script src="http://www.easyui-extlib.com/Scripts/jquery-easyui-extensions/datagrid/jeasyui.extensions.datagrid.tooltip.js"></script>*@
+
+<script src="~/lib/datagrid_tooltip/jeasyui.extensions.datagrid.getDom.js"></script>
+<script src="~/lib/datagrid_tooltip/jeasyui.extensions.datagrid.getColumnInfo.js"></script>
+<script src="~/lib/datagrid_tooltip/jeasyui.extensions.datagrid.getRowData.js"></script>
+<script src="~/lib/datagrid_tooltip/jeasyui.extensions.datagrid.tooltip.js"></script>
+
+    <script type="text/javascript">
+        var url,xm= '@ViewBag.xm',chezhu_filt="";
+        var kaishi,jieshu;
+        $(function () {
+            $("#zhifu").datagrid({
+                singleSelect: true,
+                async: false,
+                collapsible: true,
+                method: 'post',
+                url: '/ZhifuXinXi/Get_zhifu',
+                toolbar: '#toolbar',
+                rownumbers: true,
+                pagination: true,
+                fitcolumns: true,       
+                @*view: groupview,*@
+                groupField:'chezhu',                
+                groupFormatter: function (value, rows) { return value + ' - ' + rows.length + ' 项'; },
+                //nowrap: false,
+                @*fit: true,*@    @*datagrid表不用满屏显示*@
+                autoRowheight: false,
+                rowTooltip: false,
+                queryParams: {                    
+                    xm:xm,
+                    kaishi:kaishi,
+                    jieshu:jieshu,
+                    chezhu_filt:chezhu_filt                                          
+                },
+                onLoadSuccess: function (data) {
+                    //提交  plain:当True时显示一个普通效果                                       
+                }
+            });
+            var p = $('#zhifu').datagrid('getPager');
+
+            $(p).pagination({
+                pageSize: 20,//每页显示的记录条数，默认为10
+                pageList: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100],//可以设置每页记录条数的列表
+                beforePageText: '第',//页数文本框前显示的汉字
+                afterPageText: '页    共 {pages} 页',
+                displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录',
+            });                 
+            
+            //datagrid加载数据的时候，过滤功能中 车牌下拉框和车主下拉框  默认没有选中                        
+            $('#chezhu_filt').combobox({                  
+                onLoadSuccess : function() {                    
+                    $('#chepai_filt').combobox('setValue',"");
+                }                              
+            }).combobox('clear'); 
+            setTimeout(1000);
+            $('#chepai_filt').combobox('setValue',"");
+        });
+
+        //对textbox进行验证
+        $.extend($.fn.textbox.defaults.rules, {
+            positive_int: {
+                validator: function (value, param) {
+                    if (value) {
+                        return /^[0-9]*[1-9][0-9]*$/.test(value);
+                    } else {
+                        return true;
+                    }
+                },
+                message: '只能输入正整数.'
+            },
+            numeric: {
+                validator: function (value, param) {
+                    if (value) {
+                        return /^[0-9]*(\.[0-9]+)?$/.test(value);
+                    } else {
+                        return true;
+                    }
+                },
+                message: '只能输入数值.'
+            }
+        });
+
+        function compute(colName) {
+          var rows = $('#zhifu').datagrid('getRows');
+          var total = 0;
+          for (var i = 0; i < rows.length; i++) {
+            total += parseFloat(rows[i][colName]);
+          }
+          return total;
+        }        
+
+        @*截取显示部分时间*@
+        function formatDatebox(value){           
+            var time = value.substring(0,10);           
+            return time;
+        };
+
+        //点击搜索触发事件
+        function doSearch() {            
+            var kaishi = document.getElementById("kaishi").value;
+            var jieshu = document.getElementById("jieshu").value;
+            var chezhu_filt = document.getElementById("chezhu_filt").value;
+            @*这里的参数 xm ，写成 @xm 一直拿不到值，一直到不了后台的断点*@
+            $('#zhifu').datagrid('load', { "xm":xm, "kaishi": kaishi, "jieshu": jieshu,"chezhu_filt":chezhu_filt });   
+            
+            //这里执行ajax 替换 datagrid 底部的提示信息
+            $.ajax({
+                type: 'post', //请求的方式
+                async : false,
+                url:  '/ZhifuXinXi/Zhifu_tishi?xm=@xm&kaishi='+kaishi+'&jieshu='+jieshu+'&chezhu_filt='+chezhu_filt+'', // 请求的URL地址
+                @*data: {  },// 这次请求要携带的数据*@
+                success: function(res) { //请求成功之后的回调函数
+                    @*var jsonStr = JSON.stringify(res);*@
+                    if(res.length>0){   
+                        var div_data = "<div>"+res+"</div>"
+                        $("#heji").html(div_data);                                                     
+                    }                                
+                }
+            });
+        };
+        
+        function chakan(value, row, index) {  
+            //这里的 事件要添加  转义 符号，否则获取不到第二个参数，这里卡了一整个下午   title="' + value + '"
+            var ss = '<a id="yg' + index + '" class="easyui-tooltip" href="javascript:vioid(0);" onmouseover="mouse(\''+index+'\',\''+value+'\')">' + value + '</a>';
+            //var ss = '<a id="yg" class="easyui-tooltip" href="javascript:vioid(0);" onmouseover="mouse(\''+index+'\',\''+value+'\')">' + value + '</a>';                        
+            return ss;                     
+        };
+
+
+        function mouse(index,value) {
+            //alert(value);         // 到这里都没有问题
+            //alert(index);         // 到这里都没有问题
+            //这里的 post 运行不起来
+            @*$.post('/ZhifuXinXi/Chezhu_zhifu',{xm:@xm, chezhu:value }, function (result) {
+                if (result.success) {
+                    var ygh = "#yg" + index;                    
+                    $(ygh).tooltip({ content: result.msg });
+                }
+            }, 'json');*@
+
+
+            $.ajax({
+                url: "/ZhifuXinXi/Chezhu_zhifu?xm=@xm&chezhu="+value,                
+                async: false,  //这一步是非常重要的，作用是设置为同步执行
+                type: "POST",
+                @*data: { "xm": @xm, "chezhu":chezhu},*@  //参数写在这里没有效果
+                dataType: "json",
+                success: function (data) {
+                    var ygh = '#yg' + index;  
+                    //alert(ygh);  //这里也没有问题
+                    //alert(data.msg); //这里也没有问题                    
+                    @*alert(index);*@
+
+                    $(ygh).tooltip({ 
+                        content:'<span style="color:#000000">'+data.msg+'</span>',//fff    
+                        onShow: function(){
+					        $(this).tooltip('tip').css({
+						        backgroundColor: '#000000',
+						        borderColor: '#ff0000',
+						        boxShadow: '1px 1px 3px #292929'
+					        });
+				        }
+                    });
+
+                    $('#ceshi').tooltip({ 
+                        content:'<span style="color:#000000">'+data.msg+'</span>',
+                        onShow: function(){
+					        $(this).tooltip('tip').css({
+						        backgroundColor: '#000000',
+						        borderColor: '#ff0000',
+						        boxShadow: '1px 1px 3px #292929'
+					        });
+				        }
+                    });
+
+                    $.messager.show({
+                            title: '提示',
+                            msg: data.msg
+                    });
+                }
+            });
+        };
+        
+
+
+        @*显示车主的链接*@
+        function chakan_topage(value, row, index){                                
+            var ss = '<a href="#" title="' + value + '" onclick="Chezhu_zhifu(' + index + ')" class="easyui-tooltip">' + value + '</a>';            
+            return ss
+        };
+
+        function Chezhu_zhifu(index) {
+            alert("111")
+            $('#zhifu').datagrid('selectRow', index);
+            var row = $('#zhifu').datagrid('getSelected');
+            if (row) {
+                var xm = row.xm;
+                var chezhu = row.chezhu;                                          
+                var tabTitle = "查看:"+chezhu+"支付信息";
+                var url = "/ZhifuXinXi/Chezhu_zhifu?chezhu=" + chezhu + "&xm=@xm";
+                var icon = "icon-shenhe";
+                window.parent.parent.addTab(tabTitle, url, icon);//使用新加的tab打开窗口
+            }
+        };
+
+        function newzhifu() {
+            $('#dlg').dialog('open').dialog('setTitle', '新增支付记录信息');
+            $('#fm').form('clear');
+            @*设置时间输入框显示当天日期  *@
+            $('#zhifushijian').datebox('setValue',formatterDate(new Date()));
+            url = '/ZhifuXinXi/Save_zhifu?xm=@xm';
+        };
+
+        function editzhifu() {
+            var row = $('#zhifu').datagrid('getSelected');
+            if (row) {
+                var id = row.id;
+                $('#dlg').dialog('open').dialog('setTitle', '编辑支付记录信息');
+                $('#fm').form('load', row);
+                url = '/ZhifuXinXi/Update_zhifu?id='+id;
+            }
+            else {
+                $.messager.alert("错误提示", "请选择要编辑的行！", "warning");
+            }
+        };
+
+        function savezhifu() {
+            $('#save_btn').linkbutton({ disabled: true });   //这里是为解决一个连击问题
+            $('#fm').form('submit', {
+                url: url,
+                onSubmit: function () {                          
+                    return $(this).form('validate');
+                },
+                success: function (result) {
+                    //result = $.parseJSON(result);
+                    result = JSON.parse(result);   //IE浏览器在后台操作完成后返回提示信息，转化为json字符串格式,在删除的方法中，加了这个后不能自动reload  dategrid
+                    
+                    $('#dlg').dialog('close');		// close the dialog
+                    $('#zhifu').datagrid('reload');	// reload the user data
+                    if (result.success ) {
+                        $.messager.show({
+                            title: '提示',
+                            msg: result.msg
+                        });
+                    }
+                    else {
+                        $.messager.show({
+                            title: '提示',
+                            msg: result.msg
+                        })
+                    }
+                },
+            });
+            $('#save_btn').linkbutton({ disabled: false });   //释放连击被禁用的按钮
+        };
+
+        function delzhifu() {
+            var row = $('#zhifu').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('提示', '您确定要删除这条记录吗？', function (r) {
+                    if (r) {
+                        $.post('/ZhifuXinXi/Del_zhifu', { id: row.id }, function (result) {
+                            if (result.success) {
+                                $('#zhifu').datagrid('reload');	// reload the user data
+                            } else {
+                                result = JSON.parse(result);   //IE浏览器在后台操作完成后返回提示信息，转化为json字符串格式,在删除的方法中，加了这个后不能自动reload  dategrid
+
+                                $.messager.show({	// show error message
+                                    title: 'Error',
+                                    msg: result.errorMsg
+                                });
+                            }
+                        }, 'json');
+                    };
+                });
+            }
+            else {
+                $.messager.alert("错误提示", "请选择要删除的行！", "warning");
+            }
+        };        
+
+        //设置时间输入框默认显示当前时间
+        function formatterDate(date) {            
+            var day = date.getDate() > 9 ? date.getDate() : "0" + date.getDate();
+            var month = (date.getMonth() + 1) > 9 ? (date.getMonth() + 1) : "0"
+                + (date.getMonth() + 1);            
+            return date.getFullYear() + '/' + month + '/' + day;
+        };
+    </script>
+
+    <style type="text/css">       
+        #fm {
+            margin: 0;
+            padding: 10px 30px;
+        }
+        .ftitle {
+            font-size: 14px;
+            font-weight: bold;
+            padding: 5px 0;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        .fitem {
+            margin-bottom: 10px;
+        }
+            .fitem label {
+                display: inline-block;
+                width: 80px;
+            }
+            .fitem input {
+                width: 160px;
+            }
+    </style>
+}
